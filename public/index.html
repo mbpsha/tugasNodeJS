@@ -1,67 +1,391 @@
-<!-- === public/index.html === -->
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aplikasi Node.js + Vue</title>
-    <!-- Mengimpor Vue 3 dari CDN -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        .container { border: 1px solid #ccc; padding: 20px; max-width: 300px; border-radius: 8px; }
-        input { display: block; width: 90%; margin-bottom: 10px; padding: 8px; }
-        button { padding: 8px 15px; cursor: pointer; }
+        :root {
+            --bg: #0d0f14;
+            --surface: rgba(255,255,255,0.04);
+            --surface-hover: rgba(255,255,255,0.08);
+            --border: rgba(255,255,255,0.10);
+            --border-focus: rgba(212,175,100,0.6);
+            --gold: #d4af64;
+            --gold-light: #f0d08a;
+            --text: #f0ece4;
+            --text-muted: rgba(240,236,228,0.45);
+            --success: #4caf87;
+            --radius: 16px;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* ── Animated background ── */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 80% 60% at 20% 10%, rgba(212,175,100,0.12) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 50% at 80% 90%, rgba(76,175,135,0.08) 0%, transparent 55%),
+                radial-gradient(ellipse 40% 40% at 50% 50%, rgba(100,120,200,0.06) 0%, transparent 60%);
+            z-index: 0;
+        }
+
+        /* Floating orbs */
+        body::after {
+            content: '';
+            position: fixed;
+            width: 500px; height: 500px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(212,175,100,0.07) 0%, transparent 70%);
+            top: -100px; left: -100px;
+            animation: drift 12s ease-in-out infinite alternate;
+            z-index: 0;
+        }
+
+        @keyframes drift {
+            from { transform: translate(0, 0) scale(1); }
+            to   { transform: translate(60px, 80px) scale(1.15); }
+        }
+
+        /* ── Wrapper ── */
+        #app {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+        }
+
+        /* ── Card ── */
+        .card {
+            background: var(--surface);
+            backdrop-filter: blur(32px) saturate(1.4);
+            -webkit-backdrop-filter: blur(32px) saturate(1.4);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 48px 44px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow:
+                0 0 0 1px rgba(255,255,255,0.03),
+                0 24px 80px rgba(0,0,0,0.5),
+                0 4px 16px rgba(0,0,0,0.3);
+            animation: slideUp 0.5s cubic-bezier(0.22,1,0.36,1) both;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(32px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* ── Brand mark ── */
+        .brand {
+            text-align: center;
+            margin-bottom: 36px;
+        }
+
+        .brand-icon {
+            width: 52px; height: 52px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            border-radius: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 20px rgba(212,175,100,0.35);
+            font-size: 22px;
+        }
+
+        .card h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+
+        .subtitle {
+            font-size: 13.5px;
+            color: var(--text-muted);
+            font-weight: 300;
+        }
+
+        /* ── Form ── */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        input {
+            width: 100%;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 13px 16px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15px;
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+        }
+
+        input::placeholder { color: rgba(240,236,228,0.25); }
+
+        input:focus {
+            border-color: var(--border-focus);
+            background: rgba(212,175,100,0.05);
+            box-shadow: 0 0 0 3px rgba(212,175,100,0.12);
+        }
+
+        /* ── Button ── */
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            letter-spacing: 0.02em;
+            margin-top: 8px;
+            transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+            color: #1a1500;
+            box-shadow: 0 4px 20px rgba(212,175,100,0.35);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 28px rgba(212,175,100,0.45);
+            filter: brightness(1.05);
+        }
+
+        .btn-primary:active { transform: translateY(0); }
+
+        /* ── Divider ── */
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 24px 0 20px;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* ── Footer text ── */
+        .card-footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 13.5px;
+            color: var(--text-muted);
+        }
+
+        .card-footer a {
+            color: var(--gold);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .card-footer a:hover { color: var(--gold-light); }
+
+        /* ── Landing page ── */
+        .landing-card {
+            text-align: center;
+            padding: 56px 44px;
+        }
+
+        .avatar {
+            width: 72px; height: 72px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 30px rgba(212,175,100,0.4);
+            animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.2s both;
+        }
+
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.6); }
+            to   { opacity: 1; transform: scale(1); }
+        }
+
+        .landing-card h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .landing-card h2 span {
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .landing-card p {
+            color: var(--text-muted);
+            font-size: 14.5px;
+            line-height: 1.7;
+            max-width: 280px;
+            margin: 0 auto 32px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(76,175,135,0.12);
+            border: 1px solid rgba(76,175,135,0.25);
+            color: var(--success);
+            border-radius: 100px;
+            padding: 5px 14px;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.04em;
+            margin-bottom: 28px;
+        }
+
+        .badge::before {
+            content: '';
+            width: 7px; height: 7px;
+            background: var(--success);
+            border-radius: 50%;
+            box-shadow: 0 0 6px var(--success);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50%       { opacity: 0.4; }
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 11px;
+            font-size: 14px;
+            transition: border-color 0.2s, color 0.2s;
+        }
+
+        .btn-outline:hover {
+            border-color: rgba(212,175,100,0.4);
+            color: var(--gold);
+        }
     </style>
 </head>
 <body>
 
     <div id="app">
+
         <!-- ================= HALAMAN LOGIN ================= -->
-        <div v-if="halamanAktif === 'login'" class="container">
-            <h2>Login</h2>
+        <div v-if="halamanAktif === 'login'" class="card">
+            <div class="brand">
+                <div class="brand-icon">✦</div>
+                <h2>Selamat Datang</h2>
+                <p class="subtitle">Masuk ke akun Anda untuk melanjutkan</p>
+            </div>
             <form @submit.prevent="prosesLogin">
-                <input type="text" v-model="formLogin.username" placeholder="Username" required>
-                <input type="password" v-model="formLogin.password" placeholder="Password" required>
-                <button type="submit">Masuk</button>
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" v-model="formLogin.username" placeholder="Masukkan username" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" v-model="formLogin.password" placeholder="Masukkan password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Masuk →</button>
             </form>
-            <p>Belum punya akun? <a href="#" @click.prevent="gantiHalaman('register')">Daftar</a></p>
+            <div class="card-footer">
+                Belum punya akun? <a href="#" @click.prevent="gantiHalaman('register')">Daftar sekarang</a>
+            </div>
         </div>
 
         <!-- ================= HALAMAN REGISTER ================= -->
-        <div v-if="halamanAktif === 'register'" class="container">
-            <h2>Register</h2>
+        <div v-if="halamanAktif === 'register'" class="card">
+            <div class="brand">
+                <div class="brand-icon">◈</div>
+                <h2>Buat Akun</h2>
+                <p class="subtitle">Daftar dan mulai pengalaman Anda</p>
+            </div>
             <form @submit.prevent="prosesRegister">
-                <input type="text" v-model="formRegister.username" placeholder="Buat Username" required>
-                <input type="password" v-model="formRegister.password" placeholder="Buat Password" required>
-                <button type="submit">Daftar</button>
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" v-model="formRegister.username" placeholder="Pilih username unik" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" v-model="formRegister.password" placeholder="Buat password kuat" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Daftar Sekarang →</button>
             </form>
-            <p>Sudah punya akun? <a href="#" @click.prevent="gantiHalaman('login')">Login</a></p>
+            <div class="card-footer">
+                Sudah punya akun? <a href="#" @click.prevent="gantiHalaman('login')">Login di sini</a>
+            </div>
         </div>
 
         <!-- ================= LANDING PAGE ================= -->
-        <div v-if="halamanAktif === 'landing'" class="container" style="max-width: 400px; border-color: green;">
-            <h2 style="color: green;">Selamat Datang, {{ userAktif }}!</h2>
-            <p>Ini adalah landing page Vue.js yang mengambil data dari Node.js Backend.</p>
-            <button @click="prosesLogout">Logout</button>
+        <div v-if="halamanAktif === 'landing'" class="card landing-card">
+            <div class="avatar">✦</div>
+            <div class="badge">Sesi Aktif</div>
+            <h2>Halo, <span>{{ userAktif }}</span>!</h2>
+            <p>Anda berhasil masuk. Ini adalah landing page Vue.js yang terhubung dengan Node.js Backend.</p>
+            <button @click="prosesLogout" class="btn btn-outline">Keluar dari Akun</button>
         </div>
+
     </div>
 
-    <!-- === LOGIKA VUE.JS === -->
     <script>
         const { createApp, ref, onMounted } = Vue;
 
         createApp({
             setup() {
-                // State Management
-                const halamanAktif = ref('login'); // Default halaman
+                const halamanAktif = ref('login');
                 const userAktif = ref('');
-
-                // Data Form
                 const formLogin = ref({ username: '', password: '' });
                 const formRegister = ref({ username: '', password: '' });
 
-                // Cek sesi saat aplikasi dimuat
                 onMounted(() => {
                     const sesiSavelocal = localStorage.getItem('userSession');
                     if (sesiSavelocal) {
@@ -70,12 +394,8 @@
                     }
                 });
 
-                // Fungsi Pindah Halaman
-                const gantiHalaman = (halaman) => {
-                    halamanAktif.value = halaman;
-                };
+                const gantiHalaman = (halaman) => { halamanAktif.value = halaman; };
 
-                // Fungsi Register (Fetch ke Backend Node.js)
                 const prosesRegister = async () => {
                     const response = await fetch('/api/register', {
                         method: 'POST',
@@ -84,14 +404,12 @@
                     });
                     const data = await response.json();
                     alert(data.message);
-
                     if (response.ok) {
-                        formRegister.value = { username: '', password: '' }; // Reset form
-                        halamanAktif.value = 'login'; // Arahkan ke login
+                        formRegister.value = { username: '', password: '' };
+                        halamanAktif.value = 'login';
                     }
                 };
 
-                // Fungsi Login (Fetch ke Backend Node.js)
                 const prosesLogin = async () => {
                     const response = await fetch('/api/login', {
                         method: 'POST',
@@ -99,19 +417,17 @@
                         body: JSON.stringify(formLogin.value)
                     });
                     const data = await response.json();
-
                     if (response.ok) {
                         alert(data.message);
-                        localStorage.setItem('userSession', data.username); // Simpan sesi
+                        localStorage.setItem('userSession', data.username);
                         userAktif.value = data.username;
-                        formLogin.value = { username: '', password: '' }; // Reset form
-                        halamanAktif.value = 'landing'; // Masuk ke landing page
+                        formLogin.value = { username: '', password: '' };
+                        halamanAktif.value = 'landing';
                     } else {
-                        alert(data.message); // Jika gagal
+                        alert(data.message);
                     }
                 };
 
-                // Fungsi Logout
                 const prosesLogout = () => {
                     localStorage.removeItem('userSession');
                     userAktif.value = '';
